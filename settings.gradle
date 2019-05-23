@@ -1,0 +1,2 @@
+include ':app', ':mrz-parser', ':tess-two', ':mrzreaderlibrary'
+include ':openCv'
