@@ -15,7 +15,7 @@ extern "C"{
 #endif
 
 JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTracker_detectMrzRegion
-        (JNIEnv *env, jclass, jlong frameAddress){
+        (JNIEnv *env, jclass , jlong frameAddress){
 
     cv::Mat rectKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(13, 5));
     cv::Mat sqKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(34, 34));
