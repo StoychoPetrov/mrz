@@ -33,7 +33,7 @@ android {
 
         def ndkBuildExt = Os.isFamily(Os.FAMILY_WINDOWS) ? ".cmd" : ""
 
-        commandLine "${ndkDirPrefix}ndk-build${ndkBuildExt}", '-C', file('.').absolutePath,
+        commandLine "${ndkDirPrefix}ndk-build${ndkBuildExt}", '-C', file('.').path,
 				'-j', Runtime.runtime.availableProcessors()
     }
 
