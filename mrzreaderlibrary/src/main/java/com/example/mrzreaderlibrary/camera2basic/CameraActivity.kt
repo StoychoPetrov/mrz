@@ -18,16 +18,26 @@ package com.example.mrzreaderlibrary.camera2basic
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.mrz.MrzRecord
+import com.example.mrzreaderlibrary.MrzDataListener
 import com.example.mrzreaderlibrary.R
 
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : AppCompatActivity(), MrzDataListener {
+
+    override fun onMrzDataRead(mrzParser: MrzRecord) {
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
+        val cameraBasic = Camera2BasicFragment.newInstance()
+        cameraBasic.mrzDataListener = this
+
         savedInstanceState ?: supportFragmentManager.beginTransaction()
-                .replace(R.id.container, Camera2BasicFragment.newInstance())
+                .replace(R.id.container, cameraBasic)
+                .addToBackStack(null)
                 .commit()
     }
 

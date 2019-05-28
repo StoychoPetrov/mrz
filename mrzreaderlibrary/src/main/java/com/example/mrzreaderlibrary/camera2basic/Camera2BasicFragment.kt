@@ -17,7 +17,6 @@
 package com.example.mrzreaderlibrary.camera2basic
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -49,13 +48,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.example.mrz.MrzParser
-import com.example.mrzreaderlibrary.DetectionBasedTracker
-import com.example.mrzreaderlibrary.JavaCamera2Frame
-import com.example.mrzreaderlibrary.TesseractOCR2
+import com.example.mrzreaderlibrary.*
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.io.File
 import java.util.Arrays
@@ -64,10 +60,9 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
-import com.example.mrzreaderlibrary.R
-import kotlinx.android.synthetic.main.fragment_camera2_basic.*
+import org.opencv.core.CvType
 
-class Camera2BasicFragment : Fragment(), View.OnClickListener,
+class Camera2BasicFragment : Fragment(),
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
@@ -89,6 +84,8 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
 
     }
+
+    lateinit var mrzDataListener: MrzDataListener
 
     /**
      * ID of the current [CameraDevice].
@@ -116,8 +113,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
      * The [android.util.Size] of camera preview.
      */
     private lateinit var previewSize: Size
-
-    private var testImageSet: Boolean = false
 
     /**
      * [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.
@@ -194,8 +189,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
      */
     private lateinit var file: File
 
-    private var testBitmapSet = false
-
     /**
      * This a callback object for the [ImageReader]. "onImageAvailable" will be called when a
      * still image is ready to be saved.
@@ -205,10 +198,11 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         val image = it.acquireLatestImage()
 
         if(image != null) {
+
             val planes: Array<Image.Plane> = image.planes
 
             if(planes.size == 3) {
-                assert(image.format == ImageFormat.YUV_420_888)
+                assert(image.format == ImageFormat.JPEG)
 
                 // see also https://developer.android.com/reference/android/graphics/ImageFormat.html#YUV_420_888
                 // Y plane (0) non-interleaved => stride == 1; U/V plane interleaved => stride == 2
@@ -338,8 +332,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     ): View? = inflater.inflate(R.layout.fragment_camera2_basic, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.findViewById<View>(R.id.picture).setOnClickListener(this)
-        view.findViewById<View>(R.id.info).setOnClickListener(this)
         textureView = view.findViewById(R.id.texture)
 
         if(activity != null)
@@ -387,15 +379,17 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
         val srcText = tesseractOCR.getOCRResult(bitmap)
 
-        Log.d("Scan text", srcText)
+        Log.d("Mrz data", srcText)
 
         if(srcText != null) {
             try {
                 val parser = MrzParser.parse(srcText)
 
                 if (parser != null) {
-                    Log.d("Names: ", parser.givenNames)
+                    mrzDataListener.onMrzDataRead(parser)
+                    fragmentManager?.popBackStack()
                 }
+
             } catch (exception: Exception) {
                 exception.printStackTrace()
             }
@@ -810,20 +804,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
             Log.e(TAG, e.toString())
         }
 
-    }
-
-    override fun onClick(view: View) {
-        when (view.id) {
-            R.id.picture -> lockFocus()
-            R.id.info -> {
-                if (activity != null) {
-                    AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show()
-                }
-            }
-        }
     }
 
     private fun setAutoFlash(requestBuilder: CaptureRequest.Builder) {

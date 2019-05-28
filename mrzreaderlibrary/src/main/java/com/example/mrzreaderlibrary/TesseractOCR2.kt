@@ -85,40 +85,6 @@ class TesseractOCR2(val context: Context, val language: String) {
 
     }
 
-//    private fun saveFileFromRowInStorage(){
-//        val fileName                = "en.traineddata"
-//        val dstPathDir: String      = context.filesDir.path.plus("/tesseract/tessdata/")
-//        val dstFilePath: String     = dstPathDir.plus(fileName)
-//
-//        val inputStream: InputStream = context.resources.openRawResource(
-//                context.resources.getIdentifier("en",
-//                        "raw", context.packageName))
-//
-//        val file      = File(dstFilePath)
-//
-//        if (file.exists() || !File(dstPathDir).mkdirs()){
-//            inputStream.close()
-//            initTesseract()
-//        }
-//        else {
-//            val outputStream  = FileOutputStream(File(dstFilePath))
-//
-//            val buf     = ByteArray(1024)
-//            var bytes   = inputStream.read(buf)
-//
-//            while (bytes != -1) {
-//                outputStream.write(buf)
-//                bytes = inputStream.read(buf)
-//            }
-//
-//            outputStream.flush()
-//            inputStream.close()
-//            outputStream.close()
-//            initTesseract()
-//        }
-//
-//    }
-
     private fun initTesseract() {
         try {
             tesseractApi.init(TESSERACT_PATH, language)
