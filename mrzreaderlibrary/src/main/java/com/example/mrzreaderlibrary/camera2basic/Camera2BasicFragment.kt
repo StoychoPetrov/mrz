@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 import com.example.mrzreaderlibrary.R
+import kotlinx.android.synthetic.main.fragment_camera2_basic.*
 
 class Camera2BasicFragment : Fragment(), View.OnClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback {
@@ -365,9 +366,13 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     override fun onPause() {
         closeCamera()
         stopBackgroundThread()
-        tesseractOCR.endTess()
 
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        tesseractOCR.endTess()
     }
 
     private fun requestCameraPermission() {
@@ -382,14 +387,18 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
         val srcText = tesseractOCR.getOCRResult(bitmap)
 
-        try {
-            val parser = MrzParser.parse(srcText)
+        Log.d("Scan text", srcText)
 
-            if (parser != null) {
-                Log.d("Names: ", parser.givenNames)
+        if(srcText != null) {
+            try {
+                val parser = MrzParser.parse(srcText)
+
+                if (parser != null) {
+                    Log.d("Names: ", parser.givenNames)
+                }
+            } catch (exception: Exception) {
+                exception.printStackTrace()
             }
-        } catch (exception: Exception) {
-            exception.printStackTrace()
         }
     }
 

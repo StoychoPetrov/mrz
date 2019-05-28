@@ -17,8 +17,8 @@ extern "C"{
 JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTracker_detectMrzRegion
         (JNIEnv *env, jclass , jlong frameAddress){
 
-    cv::Mat rectKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(13, 5));
-    cv::Mat sqKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(34, 34));
+    Mat rectKernel = getStructuringElement(MORPH_RECT, Size(13, 5));
+    Mat sqKernel = getStructuringElement(MORPH_RECT, Size(34, 34));
 
     Mat& image = *(Mat*) frameAddress;
 
@@ -27,53 +27,53 @@ JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTra
         return NULL;
     }
 
-    cv::Mat gray;
-    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-//cv::resize(image, outimage, cv__So)
+    cv:rotate(image, image, ROTATE_90_COUNTERCLOCKWISE);
 
-    cv:rotate(gray, gray, cv::ROTATE_90_COUNTERCLOCKWISE);
+    Mat gray;
+    cvtColor(image, gray, COLOR_BGR2GRAY);
+//resize(image, outimage, cv__So)
 
-    cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
-    cv::Mat blackHat;
-    cv::morphologyEx(gray, blackHat, cv::MORPH_BLACKHAT, rectKernel);
+    GaussianBlur(gray, gray, Size(3, 3), 0);
+    Mat blackHat;
+    morphologyEx(gray, blackHat, MORPH_BLACKHAT, rectKernel);
 
 //compute the Scharr gradient of the blackhat image and scale the
 //result into the range[0, 255]
-    cv::Mat gradX;
+    Mat gradX;
     Mat abs_grad_x;
     int scale = 1;
     int delta = 0;
-    cv::Sobel( blackHat, gradX, CV_8UC1, 1, 0,-1, scale, delta, BORDER_DEFAULT );
-    cv::convertScaleAbs( gradX, abs_grad_x );
+    Sobel( blackHat, gradX, CV_8UC1, 1, 0,-1, scale, delta, BORDER_DEFAULT );
+    convertScaleAbs( gradX, abs_grad_x );
 
 //apply a closing operation using the rectangular kernel to close
 // gaps in between letters — then apply Otsu’s thresholding method
     double threshValue = 0;
     double maxValue = 255;
-    cv::Mat thresh;
-    cv::morphologyEx(gradX, gradX, cv::MORPH_CLOSE, rectKernel);
-    cv::threshold(gradX, thresh, threshValue, maxValue, cv::THRESH_BINARY | cv::THRESH_OTSU);
+    Mat thresh;
+    morphologyEx(gradX, gradX, MORPH_CLOSE, rectKernel);
+    threshold(gradX, thresh, threshValue, maxValue, THRESH_BINARY | THRESH_OTSU);
 // perform another closing operation, this time using the square
 // kernel to close gaps between lines of the MRZ, then perform a
 // serieso of erosions to break apart connected components
-    cv::Mat thresh2;
-    cv::morphologyEx(thresh, thresh2, cv::MORPH_CLOSE, sqKernel);
-    cv::erode(thresh2, thresh, NULL, cv::Point(-1,-1), 4);
+    Mat thresh2;
+    morphologyEx(thresh, thresh2, MORPH_CLOSE, sqKernel);
+    erode(thresh2, thresh, NULL, Point(-1,-1), 4);
 
 // find contours in the thresholded image and sort them by their
 // sizes
     vector<vector<Point> > cnts;
     try{
-        cv::findContours( thresh, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+        findContours( thresh, cnts, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
     }
     catch (exception& e) {
 //        cout << "Exception" << e.what() << endl;
     }
 
-    cv::Mat roi;
+    Mat roi;
 // loop over the contours
     for (size_t i = 0; i< cnts.size(); i++){
-        Rect rect = cv::boundingRect(cv::Mat(cnts[i]));
+        Rect rect = boundingRect(Mat(cnts[i]));
         float ar = rect.width / float(rect.height);
         float crWidth = rect.width / float(gray.size[1]);
 
@@ -92,8 +92,8 @@ JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTra
 // extract the ROI from the image and draw a bounding box
 // surrounding the MRZ
             try{
-                image(cv::Range(y, y + h), cv::Range(x, x + w)).copyTo(roi);
-                cv::rectangle(image, Point(x, y), Point(x + w, y + h), Scalar(0, 255, 0), 2, LINE_8, 0);
+                image(Range(y, y + h), Range(x, x + w)).copyTo(roi);
+                rectangle(image, Point(x, y), Point(x + w, y + h), Scalar(0, 255, 0), 2, LINE_8, 0);
             }
             catch (exception& e) {
             }
@@ -103,11 +103,11 @@ JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTra
 
 //return to java crop image
     if(!roi.empty() && roi.cols > 0){
-        cv::Mat outImg;
+        Mat outImg;
 //0.75
-        cv::resize(roi, outImg, cv::Size(roi.cols * 0.99,roi.rows * 0.99), 0, 0, INTER_LINEAR);
+        rotate(roi, roi, ROTATE_180);
 
-
+        resize(roi, outImg, Size(roi.cols * 0.99,roi.rows * 0.99), 0, 0, INTER_LINEAR);
 
         vector<unsigned char> imageDesV;
         imencode(".bmp", outImg, imageDesV);
