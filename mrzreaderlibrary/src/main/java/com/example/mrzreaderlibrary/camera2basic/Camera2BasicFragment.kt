@@ -47,6 +47,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProviders
 import com.example.mrz.MrzParser
 import com.example.mrzreaderlibrary.*
 import org.opencv.android.BaseLoaderCallback
@@ -85,7 +86,7 @@ class Camera2BasicFragment : Fragment(),
 
     }
 
-    lateinit var mrzDataListener: MrzDataListener
+    lateinit var mrzDataViewModel: MrzDataViewModel
 
     /**
      * ID of the current [CameraDevice].
@@ -326,9 +327,17 @@ class Camera2BasicFragment : Fragment(),
 
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        mrzDataViewModel = activity?.run {
+            ViewModelProviders.of(this).get(MrzDataViewModel::class.java)
+        } ?: throw Exception("Invalid Activity")
+    }
+
     override fun onCreateView(inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+                              container: ViewGroup?,
+                              savedInstanceState: Bundle?
     ): View? = inflater.inflate(R.layout.fragment_camera2_basic, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -386,8 +395,10 @@ class Camera2BasicFragment : Fragment(),
                 val parser = MrzParser.parse(srcText)
 
                 if (parser != null) {
-                    mrzDataListener.onMrzDataRead(parser)
-                    fragmentManager?.popBackStack()
+                    activity?.runOnUiThread {
+                        mrzDataViewModel.setMrzRecord(parser)
+                        fragmentManager?.popBackStack()
+                    }
                 }
 
             } catch (exception: Exception) {

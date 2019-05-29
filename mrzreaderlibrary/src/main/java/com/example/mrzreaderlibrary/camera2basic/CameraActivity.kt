@@ -17,28 +17,35 @@
 package com.example.mrzreaderlibrary.camera2basic
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.example.mrz.MrzRecord
-import com.example.mrzreaderlibrary.MrzDataListener
+import com.example.mrzreaderlibrary.MrzDataViewModel
 import com.example.mrzreaderlibrary.R
 
-class CameraActivity : AppCompatActivity(), MrzDataListener {
+class CameraActivity : AppCompatActivity() {
 
-    override fun onMrzDataRead(mrzParser: MrzRecord) {
-
-    }
+    private lateinit var mrzDataViewModel: MrzDataViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
-        val cameraBasic = Camera2BasicFragment.newInstance()
-        cameraBasic.mrzDataListener = this
+        mrzDataViewModel = ViewModelProviders.of(this).get(MrzDataViewModel::class.java)
+        setObserver()
 
         savedInstanceState ?: supportFragmentManager.beginTransaction()
-                .replace(R.id.container, cameraBasic)
+                .replace(R.id.container,  Camera2BasicFragment.newInstance())
                 .addToBackStack(null)
                 .commit()
+    }
+
+    private fun setObserver(){
+        mrzDataViewModel.getMrzRecord().observe(this, Observer {
+            Toast.makeText(this, it?.givenNames, Toast.LENGTH_SHORT).show()
+        })
     }
 
 }
