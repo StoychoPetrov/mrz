@@ -397,7 +397,6 @@ class Camera2BasicFragment : Fragment(),
                 if (parser != null) {
                     activity?.runOnUiThread {
                         mrzDataViewModel.setMrzRecord(parser)
-                        fragmentManager?.popBackStack()
                     }
                 }
 

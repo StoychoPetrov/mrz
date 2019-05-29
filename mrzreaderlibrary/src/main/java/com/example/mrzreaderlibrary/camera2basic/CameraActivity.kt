@@ -46,5 +46,4 @@ class CameraActivity : AppCompatActivity() {
             Toast.makeText(this, it?.givenNames, Toast.LENGTH_SHORT).show()
         })
     }
-
 }
