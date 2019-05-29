@@ -21,7 +21,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.example.mrz.MrzRecord
 import com.example.mrzreaderlibrary.MrzDataViewModel
 import com.example.mrzreaderlibrary.R
 
