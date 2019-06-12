@@ -86,7 +86,7 @@ class Camera2BasicFragment : Fragment(),
 
     }
 
-    lateinit var mrzDataViewModel: MrzDataViewModel
+    private lateinit var mrzDataViewModel: MrzDataViewModel
 
     /**
      * ID of the current [CameraDevice].
@@ -394,7 +394,11 @@ class Camera2BasicFragment : Fragment(),
             try {
                 val parser = MrzParser.parse(srcText)
 
-                if (parser != null) {
+                if (parser != null
+                    && parser.validComposite
+                    && parser.validDateOfBirth
+                    && parser.validDocumentNumber
+                    && parser.validExpirationDate) {
                     activity?.runOnUiThread {
                         mrzDataViewModel.setMrzRecord(parser)
                     }

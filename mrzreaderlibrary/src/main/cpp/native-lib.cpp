@@ -107,7 +107,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_example_mrzreaderlibrary_DetectionBasedTra
 //0.75
         rotate(roi, roi, ROTATE_180);
 
-        resize(roi, outImg, Size(roi.cols * 0.99,roi.rows * 0.99), 0, 0, INTER_LINEAR);
+        resize(roi, outImg, Size(roi.cols * 0.99,roi.rows * 0.99), 0, 0, INTER_CUBIC);
 
         vector<unsigned char> imageDesV;
         imencode(".bmp", outImg, imageDesV);
