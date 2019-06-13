@@ -419,7 +419,6 @@ class Camera2BasicFragment : Fragment(),
                     && parser.validExpirationDate) {
                     activity?.runOnUiThread {
                         mrzDataViewModel.setMrzRecord(parser)
-                        activity?.onBackPressed()
                     }
                 }
 
