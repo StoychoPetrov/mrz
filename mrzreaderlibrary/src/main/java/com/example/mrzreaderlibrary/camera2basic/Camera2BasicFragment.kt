@@ -38,11 +38,7 @@ import android.os.HandlerThread
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
-import android.view.LayoutInflater
-import android.view.Surface
-import android.view.TextureView
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -347,15 +343,20 @@ class Camera2BasicFragment : Fragment(),
         if(activity != null)
             tesseractOCR = TesseractOCR2(activity as FragmentActivity, "en")
 
-        holeView.viewTreeObserver.addOnGlobalLayoutListener{
-            infoTxt.y               = holeView.bottomView + 20 * resources.displayMetrics.density
 
-            leftTopCornerImg.y      = holeView.topView - 2 * resources.displayMetrics.density
-            rightTopCornerImg.y     = holeView.topView - 2 * resources.displayMetrics.density
+        holeView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener{
+            override fun onGlobalLayout() {
+                infoTxt.y               = holeView.bottomView + 20 * resources.displayMetrics.density
 
-            leftBottomCornerImg.y   = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
-            rightBottomCornerImg.y  = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
-        }
+                leftTopCornerImg.y      = holeView.topView - 2 * resources.displayMetrics.density
+                rightTopCornerImg.y     = holeView.topView - 2 * resources.displayMetrics.density
+
+                leftBottomCornerImg.y   = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+                rightBottomCornerImg.y  = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+
+                holeView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+            }
+        })
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
