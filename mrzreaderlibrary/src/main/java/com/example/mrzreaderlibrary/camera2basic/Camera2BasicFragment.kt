@@ -343,20 +343,30 @@ class Camera2BasicFragment : Fragment(),
         if(activity != null)
             tesseractOCR = TesseractOCR2(activity as FragmentActivity, "en")
 
+        setBorder()
+    }
 
-        holeView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener{
-            override fun onGlobalLayout() {
-                infoTxt.y               = holeView.bottomView + 20 * resources.displayMetrics.density
+    private fun setBorder(){
 
-                leftTopCornerImg.y      = holeView.topView - 2 * resources.displayMetrics.density
-                rightTopCornerImg.y     = holeView.topView - 2 * resources.displayMetrics.density
+        holeView.post {
+            val padding     = 11 * resources.displayMetrics.density
 
-                leftBottomCornerImg.y   = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
-                rightBottomCornerImg.y  = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+            val width       = resources.displayMetrics.widthPixels - 2 * padding
 
-                holeView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-            }
-        })
+            val height      = width / 1.37f
+
+            val topView         = (resources.displayMetrics.heightPixels - height) / 2
+
+            val bottomView      = holeView.height - topView
+
+            infoTxt.y               = bottomView + 20 * resources.displayMetrics.density
+
+            leftTopCornerImg.y      = topView - 2 * resources.displayMetrics.density
+            rightTopCornerImg.y     = topView - 2 * resources.displayMetrics.density
+
+            leftBottomCornerImg.y   = bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+            rightBottomCornerImg.y  = bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -409,6 +419,7 @@ class Camera2BasicFragment : Fragment(),
                     && parser.validExpirationDate) {
                     activity?.runOnUiThread {
                         mrzDataViewModel.setMrzRecord(parser)
+                        activity?.onBackPressed()
                     }
                 }
 
