@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.mrz.MrzRecord
 
-
 class MrzDataViewModel : ViewModel() {
 
     var mrzRecord = MutableLiveData<MrzRecord>()

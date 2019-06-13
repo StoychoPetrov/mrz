@@ -50,6 +50,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProviders
 import com.example.mrz.MrzParser
 import com.example.mrzreaderlibrary.*
+import kotlinx.android.synthetic.main.fragment_camera2_basic.*
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
@@ -203,6 +204,7 @@ class Camera2BasicFragment : Fragment(),
             val planes: Array<Image.Plane> = image.planes
 
             if(planes.size == 3) {
+
                 assert(image.format == ImageFormat.JPEG)
 
                 // see also https://developer.android.com/reference/android/graphics/ImageFormat.html#YUV_420_888
@@ -211,13 +213,13 @@ class Camera2BasicFragment : Fragment(),
                 assert(planes[1].pixelStride == 2)
                 assert(planes[2].pixelStride == 2)
 
-                val y_plane = planes[0].buffer
-                val uv_plane = planes[1].buffer
+                val y_plane     = planes[0].buffer
+                val uv_plane    = planes[1].buffer
 
-                val y_mat = Mat(it.height, it.width, CvType.CV_8UC1, y_plane)
-                val uv_mat = Mat(it.height / 2, it.width / 2, CvType.CV_8UC2, uv_plane)
+                val y_mat       = Mat(it.height, it.width, CvType.CV_8UC1, y_plane)
+                val uv_mat      = Mat(it.height / 2, it.width / 2, CvType.CV_8UC2, uv_plane)
 
-                val tempFrame = JavaCamera2Frame(y_mat, uv_mat, it.width, it.height)
+                val tempFrame   = JavaCamera2Frame(y_mat, uv_mat, it.width, it.height)
 
                 val bitmap: Bitmap? = cropCameraViewFrame(tempFrame.rgba())
 
@@ -324,7 +326,6 @@ class Camera2BasicFragment : Fragment(),
                 result: TotalCaptureResult) {
             process(result)
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -345,6 +346,16 @@ class Camera2BasicFragment : Fragment(),
 
         if(activity != null)
             tesseractOCR = TesseractOCR2(activity as FragmentActivity, "en")
+
+        holeView.viewTreeObserver.addOnGlobalLayoutListener{
+            infoTxt.y               = holeView.bottomView + 20 * resources.displayMetrics.density
+
+            leftTopCornerImg.y      = holeView.topView - 2 * resources.displayMetrics.density
+            rightTopCornerImg.y     = holeView.topView - 2 * resources.displayMetrics.density
+
+            leftBottomCornerImg.y   = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+            rightBottomCornerImg.y  = holeView.bottomView - leftBottomCornerImg.height + 2 * resources.displayMetrics.density
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -376,12 +387,8 @@ class Camera2BasicFragment : Fragment(),
         tesseractOCR.endTess()
     }
 
-    private fun requestCameraPermission() {
-        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            ConfirmationDialog().show(childFragmentManager, FRAGMENT_DIALOG)
-        } else {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
-        }
+    private fun requestPermissions() {
+        requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION)
     }
 
     private fun ocr(bitmap: Bitmap) {
@@ -413,13 +420,12 @@ class Camera2BasicFragment : Fragment(),
     override fun onRequestPermissionsResult(requestCode: Int,
             permissions: Array<String>,
             grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.size != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                ErrorDialog.newInstance(getString(R.string.request_permission))
-                        .show(childFragmentManager, FRAGMENT_DIALOG)
+            if (grantResults.size != 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+                activity?.onBackPressed()
             }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
 
@@ -550,9 +556,12 @@ class Camera2BasicFragment : Fragment(),
      */
     private fun openCamera(width: Int, height: Int) {
         if(activity != null) {
-            val permission = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.CAMERA)
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                requestCameraPermission()
+            val permission          = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.CAMERA)
+            val permissionStorage   = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+            if (permission != PackageManager.PERMISSION_GRANTED
+                || permissionStorage != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions()
                 return
             }
 
