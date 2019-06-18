@@ -7,7 +7,7 @@ import com.example.mrz.MrzRecord
 
 class MrzDataViewModel : ViewModel() {
 
-    var mrzRecord = MutableLiveData<MrzRecord>()
+    var mrzRecord = MutableLiveData<MrzRecord?>()
 
     fun getMrzRecord() : LiveData<MrzRecord?> = mrzRecord
 
