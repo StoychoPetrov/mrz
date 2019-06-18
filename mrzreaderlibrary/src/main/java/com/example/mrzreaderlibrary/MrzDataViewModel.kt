@@ -11,7 +11,7 @@ class MrzDataViewModel : ViewModel() {
 
     fun getMrzRecord() : LiveData<MrzRecord?> = mrzRecord
 
-    fun setMrzRecord(mrzData: MrzRecord) {
+    fun setMrzRecord(mrzData: MrzRecord?) {
         mrzRecord.value = mrzData
     }
 }
