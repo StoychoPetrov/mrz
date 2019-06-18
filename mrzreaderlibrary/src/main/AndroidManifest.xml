@@ -14,7 +14,10 @@
 
     <application>
         <activity android:name="com.example.mrzreaderlibrary.camera2basic.CameraActivity"
-        android:screenOrientation="portrait"/>
+                  android:screenOrientation="portrait"
+                  android:allowBackup="false"
+                  android:fullBackupContent="false"
+                  android:fullBackupOnly="false"/>
     </application>
 
 </manifest>

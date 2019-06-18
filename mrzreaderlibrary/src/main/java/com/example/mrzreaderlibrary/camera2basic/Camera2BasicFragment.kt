@@ -147,17 +147,7 @@ class Camera2BasicFragment : Fragment(),
                     // Load native library after(!) OpenCV initialization
                     System.loadLibrary("native-lib")
 
-                    startBackgroundThread()
-
-                    // When the screen is turned off and turned back on, the SurfaceTexture is already
-                    // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
-                    // a camera and start preview from here (otherwise, we wait until the surface is ready in
-                    // the SurfaceTextureListener).
-                    if (textureView.isAvailable) {
-                        openCamera(textureView.width, textureView.height)
-                    } else {
-                        textureView.surfaceTextureListener = surfaceTextureListener
-                    }
+                    startCamera()
                 }
                 else -> {
                     super.onManagerConnected(status)
@@ -340,10 +330,9 @@ class Camera2BasicFragment : Fragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         textureView = view.findViewById(R.id.texture)
 
-        if(activity != null)
-            tesseractOCR = TesseractOCR2(activity as FragmentActivity, "en")
-
         setBorder()
+
+        backImg.setOnClickListener {activity?.onBackPressed()}
     }
 
     private fun setBorder(){
@@ -377,7 +366,19 @@ class Camera2BasicFragment : Fragment(),
     override fun onResume() {
         super.onResume()
 
-        if (!OpenCVLoader.initDebug()) {
+
+        loadOpenCvLibrary()
+    }
+
+    private fun loadOpenCvLibrary(){
+        val permission          = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.CAMERA)
+        val permissionStorage   = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        if (permission != PackageManager.PERMISSION_GRANTED
+            || permissionStorage != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions()
+        }
+        else if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization")
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, activity, loaderCallback)
         } else {
@@ -396,6 +397,21 @@ class Camera2BasicFragment : Fragment(),
     override fun onDestroy() {
         super.onDestroy()
         tesseractOCR.endTess()
+    }
+
+    private fun startCamera(){
+
+        startBackgroundThread()
+
+        // When the screen is turned off and turned back on, the SurfaceTexture is already
+        // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
+        // a camera and start preview from here (otherwise, we wait until the surface is ready in
+        // the SurfaceTextureListener).
+
+        if (textureView.isAvailable)
+            openCamera(textureView.width, textureView.height)
+        else
+            textureView.surfaceTextureListener = surfaceTextureListener
     }
 
     private fun requestPermissions() {
@@ -434,9 +450,10 @@ class Camera2BasicFragment : Fragment(),
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.size != 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.size != 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED)
                 activity?.onBackPressed()
-            }
+            else
+                loadOpenCvLibrary()
         }
     }
 
@@ -567,14 +584,8 @@ class Camera2BasicFragment : Fragment(),
      */
     private fun openCamera(width: Int, height: Int) {
         if(activity != null) {
-            val permission          = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.CAMERA)
-            val permissionStorage   = ContextCompat.checkSelfPermission(activity as FragmentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-            if (permission != PackageManager.PERMISSION_GRANTED
-                || permissionStorage != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions()
-                return
-            }
+            if(activity != null)
+                tesseractOCR = TesseractOCR2(activity as FragmentActivity, "eng")
 
             setUpCameraOutputs(width, height)
             configureTransform(width, height)

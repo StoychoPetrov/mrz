@@ -17,7 +17,7 @@ class TesseractOCR2(val context: Context, val language: String) {
     private val TESSERACT_PATH                  = Environment.getExternalStorageDirectory().absolutePath + "/tesseract/"
 
 
-    private var tesseractApi: TessBaseAPI = TessBaseAPI()
+    private var tesseractApi: TessBaseAPI       = TessBaseAPI()
 
     init {
         prepareTesseract()
@@ -61,7 +61,9 @@ class TesseractOCR2(val context: Context, val language: String) {
             if(fileList != null) {
                 for (fileName in fileList) {
                     val pathToDataFile = "$TESSERACT_PATH$path/$fileName"
-                    if (!File(pathToDataFile).exists() && fileName.startsWith("en")) {
+                    val file = File(pathToDataFile)
+
+                    if ((!file.exists() || !file.canRead() || !file.isFile) && fileName.startsWith("eng")) {
                         val input = context.assets.open(fileName)
                         val out = FileOutputStream(pathToDataFile)
                         val buf = ByteArray(1024)
@@ -82,7 +84,6 @@ class TesseractOCR2(val context: Context, val language: String) {
         } catch (e: IOException) {
             Log.e(TAG, "Unable to copy files to tessdata " + e.message)
         }
-
     }
 
     private fun initTesseract() {
