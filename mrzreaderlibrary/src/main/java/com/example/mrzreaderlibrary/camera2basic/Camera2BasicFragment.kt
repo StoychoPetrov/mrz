@@ -422,8 +422,6 @@ class Camera2BasicFragment : Fragment(),
 
         val srcText = tesseractOCR.getOCRResult(bitmap)
 
-        Log.d("Mrz data", srcText)
-
         if(srcText != null) {
             try {
                 val parser = MrzParser.parse(srcText)
