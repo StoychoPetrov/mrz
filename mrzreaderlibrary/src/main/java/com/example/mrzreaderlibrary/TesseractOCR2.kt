@@ -12,15 +12,15 @@ import java.io.IOException
 
 class TesseractOCR2(val context: Context, val language: String) {
 
-    private val TAG                             = "TextRecognitionHelper"
-    private val TESSERACT_TRAINED_DATA_FOLDER   = "tessdata"
-    private val TESSERACT_PATH                  = Environment.getExternalStorageDirectory().absolutePath + "/tesseract/"
+    private val TAG                                 = "TextRecognitionHelper"
 
+    private val DATA_PATH                    = Environment.getExternalStorageDirectory().toString() + "/AndroidOCR/"
 
-    private var tesseractApi: TessBaseAPI       = TessBaseAPI()
+    private var tesseractApi: TessBaseAPI            = TessBaseAPI()
 
     init {
-        prepareTesseract()
+        writeFile()
+        initTesseract()
     }
 
     /**
@@ -28,67 +28,55 @@ class TesseractOCR2(val context: Context, val language: String) {
      *
      * @param language Language code in ISO-639-3 format.
      */
-    private fun prepareTesseract() {
-        try {
-            prepareDirectory(TESSERACT_PATH + TESSERACT_TRAINED_DATA_FOLDER)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
-        copyTessDataFiles(TESSERACT_TRAINED_DATA_FOLDER)
-        initTesseract()
-    }
+    private fun writeFile(){
+        val paths = arrayOf(DATA_PATH, DATA_PATH + "tessdata/")
 
-    private fun prepareDirectory(path: String) {
-
-        val dir = File(path)
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                Log.e(
-                    TAG,
-                    "ERROR: Creation of directory $path failed, check does Android Manifest have permission to write to external storage."
-                )
-            }
-        } else {
-            Log.i(TAG, "Created directory $path")
-        }
-    }
-
-    private fun copyTessDataFiles(path: String) {
-        try {
-            val fileList = context.assets.list("")
-
-            if(fileList != null) {
-                for (fileName in fileList) {
-                    val pathToDataFile = "$TESSERACT_PATH$path/$fileName"
-                    val file = File(pathToDataFile)
-
-                    if ((!file.exists() || !file.canRead() || !file.isFile) && fileName.startsWith("eng")) {
-                        val input = context.assets.open(fileName)
-                        val out = FileOutputStream(pathToDataFile)
-                        val buf = ByteArray(1024)
-                        var length = input.read(buf)
-
-                        while (length > 0) {
-                            out.write(buf, 0, length)
-
-                            length = input.read(buf)
-                        }
-
-                        input.close()
-                        out.close()
-                        Log.d(TAG, "Copied " + fileName + "to tessdata")
-                    }
+        for (path in paths) {
+            val dir = File(path)
+            if (!dir.exists()) {
+                if (!dir.mkdirs()) {
+                    Log.v(TAG, "ERROR: Creation of directory $path on sdcard failed")
+                    return
+                } else {
+                    Log.v(TAG, "Created directory $path on sdcard")
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Unable to copy files to tessdata " + e.message)
+        }
+
+        val file = File(DATA_PATH + "tessdata/" + language + ".traineddata")
+
+        if(file.exists())
+            file.delete()
+
+        if (!file.exists()) {
+            try {
+                val input       = context.assets.open("$language.traineddata")
+
+                val output      = FileOutputStream(File(DATA_PATH + "tessdata/", language + ".traineddata"))
+
+                val buf = ByteArray(1024)
+                var len = input.read(buf)
+
+                while (len != -1) {
+                    output.write(buf, 0, len)
+                    len = input.read(buf)
+                }
+
+                input.close()
+                output.close()
+
+                Log.v(TAG, "Copied $language traineddata")
+            } catch (e: IOException) {
+                Log.e(TAG, "Was unable to copy $language traineddata $e")
+            }
+
         }
     }
 
     private fun initTesseract() {
         try {
-            tesseractApi.init(TESSERACT_PATH, language)
+            tesseractApi.init(DATA_PATH, language)
         } catch (exception: Exception) {
             exception.printStackTrace()
         }
